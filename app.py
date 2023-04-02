@@ -1,3 +1,4 @@
+from distutils.log import debug
 from dash import Dash, dcc, html, Output, Input
 import dash_bootstrap_components as dbc
 import os
@@ -9,23 +10,23 @@ app = Dash(__name__)
 ans = linear_regression_analysis('data.xlsx', ['AT', 'V', 'AP', 'RH'], ['PE'])
 data = create_graphs(ans)
 
-def create_graph(x,y):
-    fig = create_graph_for_report(x,y)
+def create_graph(title, x_title, y_title, x_data, y_data):
+    fig = create_graph_for_report(title, x_title, y_title, x_data, y_data)
     return dcc.Graph(
             figure = fig
         )
 
-def create_graph_for_report(x,y):
-    df = pd.DataFrame({'x':x, 'y':y})
-    return px.scatter(df, x = "x", y = "y")
+def create_graph_for_report(title, x_title, y_title, x_data, y_data):
+    df = pd.DataFrame({x_title:x_data, y_title:y_data})
+    return px.scatter(df, x = x_title, y = y_title, title=title)
 
 app.layout = html.Div(
     children = [
-        html.H1(children = "Snap ML Engine",),
-        html.H2(children = "By Top G Anish",),
-        html.P(children = "Analysis",),
+        html.H1(children = "@snapMLEngine",),
+        html.P(children='snapmlengine'),
+        html.H2(children = "Analysis",),
 
-        dbc.Row([create_graph(x[-2], x[-1]) for x in data]),
+        dbc.Row([create_graph(title, x_title, y_title, x_data, y_data) for title, x_title, y_title, x_data, y_data in data]),
 
         html.Button("Download Report", id="btn-download-report"),
         dcc.Download(id = "download-report"),
@@ -41,7 +42,7 @@ def generate_report(n_clicks):
     current_directory = os.getcwd()
     os.mkdir(os.path.join(current_directory, 'temp'))
 
-    figures = [create_graph_for_report(x[-2], x[-1]) for x in data]
+    figures = [create_graph_for_report(title, x_title, y_title, x_data, y_data) for title, x_title, y_title, x_data, y_data in data]
     print(figures)
 
     for i,fig in enumerate(figures):
@@ -49,4 +50,5 @@ def generate_report(n_clicks):
 
 
 if __name__ == "__main__":
-    app.run_server(port = 8051)
+    app.run_server(port = 8051, debug=True)
+    
